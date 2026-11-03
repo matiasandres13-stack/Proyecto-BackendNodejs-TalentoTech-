@@ -15,7 +15,7 @@ app.use((req, res, next) => {
 });
 
 app.get("/", (req, res) => {
-  res.send("Bienvenidos clase 12");
+  res.send("Bienvenidos clase 13");
 });
 
 app.use("/api/productos", productosRoutes);
