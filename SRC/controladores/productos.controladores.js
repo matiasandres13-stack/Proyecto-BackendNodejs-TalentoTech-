@@ -8,17 +8,19 @@ export const getProductos = async (req, res) => {
 };
 
 export const getProductoById = async (req, res) => {
-  const productosId = parseInt(req.params.id);
+  try {
+    const productosId = req.params.id;
+    const producto = await productosModel.findProductoById(productosId);
 
-  if (isNaN(productosId)) {
-    return res.status(400).json({ error: "ID de producto no valido" });
-  }
+    if (!producto) {
+      return res.status(404).json({ error: "Producto no encontrado" });
+    }
 
-  const productoEncontrado = await productosModel.findProductoById(productosId);
-  if (!productoEncontrado) {
-    return res.status(404).json({ mensaje: "Producto no encontrado" });
+    res.json(producto);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Error interno del servidor" });
   }
-  res.json(productoEncontrado);
 };
 
 export const createProducto = async (req, res) => {

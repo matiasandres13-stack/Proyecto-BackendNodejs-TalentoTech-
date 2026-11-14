@@ -1,20 +1,23 @@
-import { readFile, writeFile } from "fs/promises";
+import {
+  collection,
+  addDoc,
+  getDocs,
+  doc,
+  getDoc,
+  updateDoc,
+  deleteDoc,
+} from "firebase/firestore";
+import { db } from "../config/firebase.js";
 
-const dataURL = new URL("../../data/catalogo.json", import.meta.url);
-
-const readCatalogo = async () => {
-  const catalogoJSON = await readFile(dataURL, "utf-8");
-  const catalogo = JSON.parse(catalogoJSON);
-  return catalogo;
-};
-
-const writeCatalogo = async (catalogo) => {
-  const catalogoJSON = JSON.stringify(catalogo, null, 2);
-  await writeFile(dataURL, catalogoJSON, "utf-8");
-};
+const coleccionProductos = collection(db, "productos_backend"); // definiendo una coleccion
 
 export const findAllProductos = async (categoriasId) => {
-  const { productos } = await readCatalogo();
+  const productossnapshot = await getDocs(coleccionProductos);
+  const productos = productossnapshot.docs.map((doc) => ({
+    id: doc.id,
+    ...doc.data(),
+  }));
+
   if (!categoriasId) {
     return productos;
   }
@@ -23,54 +26,45 @@ export const findAllProductos = async (categoriasId) => {
 };
 
 export const findProductoById = async (id) => {
-  const { productos } = await readCatalogo();
-  return productos.find((p) => p.id === parseInt(id));
+  const docref = doc(db, "productos_backend", id);
+  const docSnapshot = await getDoc(docref);
+
+  if (!docSnapshot.exists()) {
+    return null; // Producto no encontrado
+  }
+
+  return { id: docSnapshot.id, ...docSnapshot.data() };
 };
 
 export const createProducto = async (nombre, precio, categoriasId) => {
-  const catalogo = await readCatalogo();
-
-  const ids = catalogo.productos.map((p) => p.id);
-  const siguienteId = Math.max(0, ...ids) + 1;
-
-  const nuevoProducto = {
-    id: siguienteId,
+  const productref = await addDoc(coleccionProductos, {
     nombre,
     precio,
     categoriasId,
-  };
-
-  catalogo.productos.push(nuevoProducto);
-
-  await writeCatalogo(catalogo);
-
-  return nuevoProducto;
+  });
+  return { id: productref.id, nombre, precio, categoriasId };
 };
 
 export const updateProducto = async (id, { nombre, precio, categoriasId }) => {
-  const catalogo = await readCatalogo();
-  const producto = catalogo.productos.find((p) => p.id === parseInt(id));
-  if (!producto) {
+  const docref = doc(db, "productos_backend", id);
+  const docSnapshot = await getDoc(docref);
+
+  if (!docSnapshot.exists()) {
     return null; // Producto no encontrado
   }
 
-  producto.nombre = nombre;
-  producto.precio = precio;
-  producto.categoriasId = categoriasId;
-
-  await writeCatalogo(catalogo);
-  return producto;
+  await updateDoc(docref, { nombre, precio, categoriasId });
+  return { id: docSnapshot.id, nombre, precio, categoriasId };
 };
 
 export const deleteProducto = async (id) => {
-  const catalogo = await readCatalogo();
-  const index = catalogo.productos.findIndex((p) => p.id === parseInt(id));
+  const docref = doc(db, "productos_backend", id);
+  const docSnapshot = await getDoc(docref);
 
-  if (index === -1) {
+  if (!docSnapshot.exists()) {
     return null; // Producto no encontrado
   }
 
-  const [productoEliminado] = catalogo.productos.splice(index, 1);
-  await writeCatalogo(catalogo);
-  return productoEliminado; // Retorna el producto eliminado
+  await deleteDoc(docref);
+  return { id: docSnapshot.id, ...docSnapshot.data() };
 };
