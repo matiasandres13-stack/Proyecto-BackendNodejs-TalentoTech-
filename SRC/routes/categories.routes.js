@@ -11,9 +11,14 @@ const readCatalogo = async () => {
   return catalogo;
 };
 
-router.get("/", async (req, res) => {
-  const { categorias } = await readCatalogo();
-  res.json(categorias);
+router.get("/api/categories", async (req, res) => {
+  try {
+    const { categorias } = await readCatalogo();
+    res.json(categorias);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Error al obtener las categorías" });
+  }
 });
 
 export default router;
