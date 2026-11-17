@@ -60,6 +60,8 @@ El servidor escucha en `http://localhost:3000`. El middleware `express.json()` i
 
 ```text
 .
+├── data
+│   └── catalogo.json
 ├── index.js
 ├── package.json
 ├── vercel.json
@@ -87,6 +89,20 @@ El servidor escucha en `http://localhost:3000`. El middleware `express.json()` i
 
 Las rutas asocian URLs con controladores. Los controladores traducen solicitudes y resultados a respuestas HTTP. Los servicios contienen la lógica de la aplicación y llaman a los modelos. Los modelos realizan operaciones con Firestore; el servicio de categorías lee un catálogo local.
 
+El catálogo de categorías se encuentra en `data/catalogo.json` y contiene una propiedad `categorias`, por ejemplo:
+
+```json
+{
+  "categorias": [
+    { "id": 1, "nombre": "Electrónica" },
+    { "id": 2, "nombre": "Hogar" },
+    { "id": 3, "nombre": "Accesorios" }
+  ]
+}
+```
+
+Los valores de `id` deben coincidir con `categoriasId` usado en los documentos de productos.
+
 ## Endpoints
 
 URL base local: `http://localhost:3000`. Las respuestas de error usan la propiedad JSON `error`.
@@ -98,6 +114,8 @@ URL base local: `http://localhost:3000`. Las respuestas de error usan la propied
 | `GET` | `/` | Público | Mensaje de bienvenida. |
 
 ### Autenticación
+
+El router de autenticación está montado bajo `/api/auth`.
 
 | Método | Ruta | Acceso | Descripción |
 |---|---|---|---|
@@ -134,6 +152,8 @@ Si las credenciales no son válidas, responde `400` con la propiedad `error`. Ac
 
 ### Productos
 
+El router de productos está montado bajo `/api/products`.
+
 | Método | Ruta | Acceso | Descripción |
 |---|---|---|---|
 | `GET` | `/api/products` | Público | Lista todos los productos. |
@@ -145,7 +165,7 @@ Si las credenciales no son válidas, responde `400` con la propiedad `error`. Ac
 
 Los productos se guardan en la colección `productos_backend` de Firestore. Para filtrar, el campo `categoriasId` debe almacenarse como número.
 
-Las operaciones de escritura reciben el token en el encabezado:
+Las operaciones de escritura requieren el encabezado:
 
 ```http
 Authorization: Bearer JWT_DEVUELTO_POR_LA_API
@@ -185,21 +205,16 @@ Sin un JWT válido, las rutas protegidas responden `401`:
 |---|---|---|---|
 | `GET` | `/api/categories` | Público | Devuelve las categorías del catálogo local. |
 
-El servicio busca `data/catalogo.json` desde la raíz del repositorio. El archivo debe tener una propiedad `categorias`, por ejemplo:
-
-```json
-{
-  "categorias": []
-}
-```
-
-**El archivo `data/catalogo.json` no está actualmente en el repositorio.** Hasta agregarlo con el catálogo requerido, `GET /api/categories` responderá `500`.
-
 ## Despliegue en Vercel
 
-El repositorio incluye `vercel.json`. Verifica que `src` y `dest` apunten al archivo de entrada real. En este proyecto el servidor está en `index.js` en la raíz; si la configuración apunta a `src/index.js`, corrígela antes de desplegar.
+El repositorio incluye `vercel.json`, configurado para usar el `index.js` ubicado en la raíz del proyecto.
 
-Configura en Vercel todas las variables indicadas en la sección de configuración, incluyendo `JWT_SECRET`, y vuelve a desplegar después de modificarlas. Para confirmar el despliegue, comprueba que Vercel muestre estado `Ready` y prueba los endpoints con la URL de producción. La presencia de `vercel.json` por sí sola no confirma que la aplicación esté desplegada.
+1. Confirma los cambios y súbelos a la rama del repositorio conectada con Vercel.
+2. Configura en Vercel las variables de entorno indicadas en la sección de configuración, incluyendo `JWT_SECRET`. No subas el archivo `.env`.
+3. Espera que el despliegue termine en estado `Ready`.
+4. Prueba los endpoints con la URL de producción.
+
+La presencia de `vercel.json` por sí sola no confirma que la aplicación esté desplegada. Comprueba el estado del despliegue en el panel de Vercel.
 
 ## Consideraciones
 
