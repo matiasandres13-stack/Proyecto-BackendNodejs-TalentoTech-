@@ -15,5 +15,5 @@ export const findByEmail = async (email) => {
 
 export const create = async ({ email, password }) => {
   const userRef = await addDoc(usersCollection, { email, password });
-  return { id: userRef.id, email };
+  return { id: userRef.id, email, password };
 };

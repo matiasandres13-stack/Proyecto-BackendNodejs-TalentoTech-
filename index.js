@@ -23,6 +23,11 @@ app.use("/api/products", productsRoutes);
 app.use(categoriesRoutes);
 app.use("/api/auth", authRoutes);
 
+// Middleware para rutas inexistentes
+app.use((req, res) => {
+  res.status(404).json({ error: "Ruta no encontrada" });
+});
+
 const port = 3000;
 
 app.listen(port, () => {

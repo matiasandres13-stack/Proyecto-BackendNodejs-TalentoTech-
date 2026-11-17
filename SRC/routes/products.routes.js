@@ -8,12 +8,17 @@ import {
   updateProduct,
 } from "../controllers/products.controllers.js";
 
+import { authenticate } from "../middlewares/auth.middelwares.js";
+
 const router = Router();
 
-router.post("/", createProduct);
+router.post("/", authenticate, createProduct);
+
 router.get("/", getProducts);
 router.get("/:id", getProductById);
-router.put("/:id", updateProduct);
-router.delete("/:id", deleteProduct);
+
+router.put("/:id", authenticate, updateProduct);
+
+router.delete("/:id", authenticate, deleteProduct);
 
 export default router;

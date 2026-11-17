@@ -1,16 +1,16 @@
-import * as productsModel from "../models/products.models.js";
+import * as productsService from "../services/products.service.js";
 
 export const getProducts = async (req, res) => {
   const categoriasId = req.query.categoriasId;
   const categoriasIdfiltrado =
-    await productsModel.findAllProducts(categoriasId);
+    await productsService.listProducts(categoriasId);
   res.json(categoriasIdfiltrado);
 };
 
 export const getProductById = async (req, res) => {
   try {
     const productId = req.params.id;
-    const product = await productsModel.findProductById(productId);
+    const product = await productsService.findProductById(productId);
 
     if (!product) {
       return res.status(404).json({ error: "Producto no encontrado" });
@@ -25,57 +25,79 @@ export const getProductById = async (req, res) => {
 
 export const createProduct = async (req, res) => {
   try {
-  const { nombre, precio, categoriasId } = req.body ?? {};
+    const { nombre, precio, categoriasId } = req.body ?? {};
 
-  if (!nombre || precio === undefined || precio < 0 || categoriasId === undefined || categoriasId < 0) {
-    return res.status(422).json({ error: "Faltan datos del producto" });
+    if (
+      typeof nombre !== "string" ||
+      !nombre.trim() ||
+      typeof precio !== "number" ||
+      !Number.isFinite(precio) ||
+      precio < 0 ||
+      typeof categoriasId !== "number" ||
+      !Number.isInteger(categoriasId) ||
+      categoriasId < 0
+    ) {
+      return res.status(422).json({
+        error: "Faltan datos obligatorios o tienen un formato inválido",
+      });
+    }
+
+    const newProduct = await productsService.createProduct({
+      nombre,
+      precio,
+      categoriasId,
+    });
+
+    res.status(201).json(newProduct);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Error interno del servidor" });
   }
-
-  const newProduct = await productsModel.createProduct(
-    nombre,
-    precio,
-    categoriasId,
-  );
-
-  res.status(201).json(newProduct);
-} catch (error) {
-  console.error(error);
-  res.status(500).json({ error: "Error interno del servidor" });
-}
 };
 
 export const updateProduct = async (req, res) => {
- try{
-  const { id } = req.params;
-  const { nombre, precio, categoriasId } = req.body ?? {};
+  try {
+    const { id } = req.params;
+    const { nombre, precio, categoriasId } = req.body ?? {};
 
- if (!nombre || precio === undefined || precio < 0 || categoriasId === undefined || categoriasId < 0) {
-    return res.status(422).json({ error: "Faltan datos del producto" });
-  } 
+    if (
+      typeof nombre !== "string" ||
+      !nombre.trim() ||
+      typeof precio !== "number" ||
+      !Number.isFinite(precio) ||
+      precio < 0 ||
+      typeof categoriasId !== "number" ||
+      !Number.isInteger(categoriasId) ||
+      categoriasId < 0
+    ) {
+      return res.status(422).json({
+        error: "Faltan datos obligatorios o tienen un formato inválido",
+      });
+    }
 
-  const updatedProduct = await productsModel.updateProduct(id, {
-    nombre,
-    precio,
-    categoriasId,
-  });
+    const updatedProduct = await productsService.updateProduct(id, {
+      nombre,
+      precio,
+      categoriasId,
+    });
 
-  if (!updatedProduct) {
-    return res.status(404).json({ mensaje: "Producto no encontrado" });
+    if (!updatedProduct) {
+      return res.status(404).json({ error: "Producto no encontrado" });
+    }
+    res.json(updatedProduct);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Error interno del servidor" });
   }
-  res.json(updatedProduct);
-} catch (error) {
-  console.error(error);
-  res.status(500).json({ error: "Error interno del servidor" });  
-} 
 };
 
 export const deleteProduct = async (req, res) => {
   const { id } = req.params;
 
-  const removedProduct = await productsModel.deleteProduct(id);
+  const removedProduct = await productsService.deleteProduct(id);
 
   if (!removedProduct) {
-    return res.status(404).json({ mensaje: "Producto no encontrado" });
+    return res.status(404).json({ error: "Producto no encontrado" });
   }
 
   return res.json(removedProduct);
