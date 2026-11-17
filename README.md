@@ -111,7 +111,17 @@ URL base local: `http://localhost:3000`. Las respuestas de error usan la propied
 
 | Método | Ruta | Acceso | Descripción |
 |---|---|---|---|
-| `GET` | `/` | Público | Mensaje de bienvenida. |
+| `GET` | `/` | Público | Devuelve `Proyecto de API REST Matias Fernandez - Comision 26226`. |
+
+```http
+GET http://localhost:3000/
+```
+
+Respuesta:
+
+```text
+Proyecto de API REST Matias Fernandez - Comision 26226
+```
 
 ### Autenticación
 

@@ -16,7 +16,7 @@ app.use((req, res, next) => {
 });
 
 app.get("/", (req, res) => {
-  res.send("Bienvenidos clase 15");
+  res.send("Proyecto de API REST Backend con Node.js - Matías Fernandez -");
 });
 
 app.use("/api/products", productsRoutes);
