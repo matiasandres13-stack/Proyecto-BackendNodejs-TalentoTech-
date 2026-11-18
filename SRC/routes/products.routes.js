@@ -13,6 +13,7 @@ import { authenticate } from "../middlewares/auth.middelwares.js";
 const router = Router();
 
 router.post("/", authenticate, createProduct);
+router.post("/create", authenticate, createProduct);  // Ruta alternativa para crear un producto
 
 router.get("/", getProducts);
 router.get("/:id", getProductById);

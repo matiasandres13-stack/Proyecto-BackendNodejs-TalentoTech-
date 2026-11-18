@@ -1,6 +1,6 @@
 # API REST de productos
 
-API de práctica desarrollada con Node.js y Express. Permite consultar, crear, actualizar y eliminar productos en Cloud Firestore; consultar categorías desde un archivo JSON local; y registrar usuarios e iniciar sesión con JWT.
+API de práctica desarrollada con Node.js y Express. Permite consultar, crear, actualizar y eliminar productos en Cloud Firestore y registrar usuarios e iniciar sesión con JWT.
 
 ## Tecnologías
 
@@ -60,8 +60,6 @@ El servidor escucha en `http://localhost:3000`. El middleware `express.json()` i
 
 ```text
 .
-├── data
-│   └── catalogo.json
 ├── index.js
 ├── package.json
 ├── vercel.json
@@ -70,7 +68,6 @@ El servidor escucha en `http://localhost:3000`. El middleware `express.json()` i
     │   └── firebase.js
     ├── controllers
     │   ├── auth.controllers.js
-    │   ├── categories.controllers.js
     │   └── products.controllers.js
     ├── middlewares
     │   └── auth.middelwares.js
@@ -79,29 +76,13 @@ El servidor escucha en `http://localhost:3000`. El middleware `express.json()` i
     │   └── user.model.js
     ├── routes
     │   ├── auth.router.js
-    │   ├── categories.routes.js
     │   └── products.routes.js
     └── services
         ├── auth.service.js
-        ├── categories.service.js
         └── products.service.js
 ```
 
-Las rutas asocian URLs con controladores. Los controladores traducen solicitudes y resultados a respuestas HTTP. Los servicios contienen la lógica de la aplicación y llaman a los modelos. Los modelos realizan operaciones con Firestore; el servicio de categorías lee un catálogo local.
-
-El catálogo de categorías se encuentra en `data/catalogo.json` y contiene una propiedad `categorias`, por ejemplo:
-
-```json
-{
-  "categorias": [
-    { "id": 1, "nombre": "Electrónica" },
-    { "id": 2, "nombre": "Hogar" },
-    { "id": 3, "nombre": "Accesorios" }
-  ]
-}
-```
-
-Los valores de `id` deben coincidir con `categoriasId` usado en los documentos de productos.
+Las rutas asocian URLs con controladores. Los controladores traducen solicitudes y resultados a respuestas HTTP. Los servicios contienen la lógica de la aplicación y llaman a los modelos. Los modelos realizan operaciones con Firestore.
 
 ## Endpoints
 
@@ -125,12 +106,14 @@ Proyecto de API REST Matias Fernandez - Comision 26226
 
 ### Autenticación
 
-El router de autenticación está montado bajo `/api/auth`.
+El router de autenticación está disponible bajo `/auth` y también bajo `/api/auth`.
 
 | Método | Ruta | Acceso | Descripción |
 |---|---|---|---|
-| `POST` | `/api/auth/register` | Público | Registra un usuario. |
-| `POST` | `/api/auth/login` | Público | Valida credenciales y devuelve un JWT. |
+| `POST` | `/auth/register` | Público | Registra un usuario. |
+| `POST` | `/auth/login` | Público | Valida credenciales y devuelve un JWT. |
+| `POST` | `/api/auth/register` | Público | Ruta alternativa para registrar un usuario. |
+| `POST` | `/api/auth/login` | Público | Ruta alternativa para iniciar sesión. |
 
 Registro e inicio de sesión reciben un JSON como:
 
@@ -169,7 +152,8 @@ El router de productos está montado bajo `/api/products`.
 | `GET` | `/api/products` | Público | Lista todos los productos. |
 | `GET` | `/api/products?categoriasId=1` | Público | Filtra por categoría. |
 | `GET` | `/api/products/:id` | Público | Obtiene un producto por su ID. |
-| `POST` | `/api/products` | JWT requerido | Crea un producto. |
+| `POST` | `/api/products/create` | JWT requerido | Crea un producto. |
+| `POST` | `/api/products` | JWT requerido | Ruta alternativa para crear un producto. |
 | `PUT` | `/api/products/:id` | JWT requerido | Actualiza un producto. |
 | `DELETE` | `/api/products/:id` | JWT requerido | Elimina un producto. |
 
@@ -184,7 +168,7 @@ Authorization: Bearer JWT_DEVUELTO_POR_LA_API
 Ejemplo de creación:
 
 ```http
-POST http://localhost:3000/api/products
+POST http://localhost:3000/api/products/create
 Content-Type: application/json
 Authorization: Bearer JWT_DEVUELTO_POR_LA_API
 ```
@@ -209,12 +193,6 @@ Sin un JWT válido, las rutas protegidas responden `401`:
 }
 ```
 
-### Categorías
-
-| Método | Ruta | Acceso | Descripción |
-|---|---|---|---|
-| `GET` | `/api/categories` | Público | Devuelve las categorías del catálogo local. |
-
 ## Despliegue en Vercel
 
 El repositorio incluye `vercel.json`, configurado para usar el `index.js` ubicado en la raíz del proyecto.
@@ -228,6 +206,6 @@ La presencia de `vercel.json` por sí sola no confirma que la aplicación esté 
 
 ## Consideraciones
 
-- El middleware JWT protege creación, actualización y eliminación de productos. Las consultas de productos y categorías son públicas.
+- El middleware JWT protege creación, actualización y eliminación de productos. Las consultas de productos son públicas.
 - Firestore se accede mediante el SDK web y requiere reglas de seguridad adecuadas. Para un backend desplegado, evalúa Firebase Admin SDK y una política de acceso apropiada.
 - El proyecto no incluye una suite de pruebas automatizadas.
